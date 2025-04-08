@@ -1,0 +1,13 @@
+---
+- name: Install MongoDB
+  import_tasks: install.yml
+
+- name: Configure MongoDB
+  import_tasks: config.yml
+
+- name: Start MongoDB
+  import_tasks: start.yml
+
+- name: Initialize replica set
+  import_tasks: replica.yml
+

@@ -1,0 +1,45 @@
+- name: Generate SELinux exception policy for MongoDB
+  shell: |
+    ausearch -c 'ftdc' --raw | audit2allow -M my-ftdc && semodule -X 300 -i my-ftdc.pp
+  become: true
+  ignore_errors: true
+
+- name: Check replica set status
+  shell: mongosh --eval "rs.status().ok"
+  ignore_errors: true
+  register: rs_status
+
+- name: Initiate replica set (only on primary host)
+  shell: |
+    mongosh --eval '
+      rs.initiate({
+        _id: "rs0",
+        members: [
+          { _id: 0, host: "{{ hostvars[groups["jaguar_cluster"][0]].static_ipv4 }}:27017" },
+          { _id: 1, host: "{{ hostvars[groups["jaguar_cluster"][1]].static_ipv4 }}:27017" },
+          { _id: 2, host: "{{ hostvars[groups["jaguar_cluster"][2]].static_ipv4 }}:27017" }
+        ]
+      });
+    '
+  when: rs_status.rc != 0
+  become: true
+
+- name: Debug replica set init result
+  debug:
+    var: rs_initiate.stdout_lines
+  when: rs_status.rc != 0
+
+- name: Create MongoDB administrative user
+  community.mongodb.mongodb_user:
+    name: admin
+    password: "p@55w0rd"  # Replace with a secure variable
+    database: admin
+    roles:
+      - role:  userAdminAnyDatabase
+        db: admin
+    state: present
+    login_host: "{{ hostvars[groups['jaguar_cluster'][1]].ansible_host }}"
+    login_port: 27017
+  delegate_to: localhost
+  become: false
+  when: inventory_hostname == groups['jaguar_cluster'][1]

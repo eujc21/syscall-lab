@@ -1,0 +1,62 @@
+---
+- hosts: jaguar_cluster
+  become: true  # Run tasks with sudo
+  tasks:
+    - name: Update yum cache and upgrade system packages
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Install Rust
+      shell: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      args:
+        creates: /home/jaguar/.cargo/bin/rustc  # Check if Rust is already installed
+      environment:
+        PATH: "{{ lookup('env','PATH') }}:/home/jaguar/.cargo/bin" # Correct the path to find the shell
+      register: rust_install
+      failed_when: rust_install.rc != 0
+      timeout: 3600
+
+    - name: Check if .cargo/env exists
+      stat:
+        path: /home/jaguar/.cargo/env
+      register: cargo_env
+
+    - name: Source .cargo/env if it exists
+      shell: source /home/jaguar/.cargo/env
+      when: cargo_env.stat.exists
+
+    - name: Source Rust env if needed
+      shell: |
+        source /home/jaguar/.cargo/env
+      args:
+        executable: /bin/bash
+      when: rust_install.changed
+      environment:
+        PATH: "{{ lookup('env','PATH') }}:/home/jaguar/.cargo/bin" # Correct the path to find the shell
+
+    - name: Set Rust environment variables
+      lineinfile:
+        path: /home/jaguar/.bashrc
+        line: 'export PATH="$HOME/.cargo/bin:$PATH"'
+        create: true
+      environment:
+        PATH: "{{ lookup('env','PATH') }}:/home/jaguar/.cargo/bin" # Correct the path to find the shell
+
+    - name: Create application directory
+      file:
+        path: /opt/rust_cluster
+        state: directory
+        owner: jaguar
+        group: jaguar
+        mode: '0755'
+
+    - name: Install required packages (example - adjust as needed)
+      dnf:
+        name: openssl-devel
+        state: present
+
+
+

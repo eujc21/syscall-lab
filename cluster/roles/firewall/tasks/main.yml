@@ -1,0 +1,35 @@
+---
+- name: Ensure firewalld is running and enabled
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+  become: true
+
+- name: Open default required ports (TCP)
+  firewalld:
+    port: "{{item}}/tcp"
+    permanent: true
+    state: enabled
+  loop: "{{ firewall_default_tcp_ports }}"
+  notify: Reload firewalld
+  become: true
+
+- name: Open default required ports (UDP)
+  firewalld:
+    port: "{{item}}/udp"
+    permanent: true
+    state: enabled
+  loop: "{{ firewall_default_udp_ports }}"
+  notify: Reload firewalld
+  become: true
+
+- name: Open ports with specific source(s)
+  firewalld:
+    port: "{{ item.port }}"
+    permanent: true
+    state: enabled
+  loop: "{{ firewall_ports_with_source | default([]) }}"
+  notify: Reload firewalld
+  become: true
+

@@ -1,0 +1,32 @@
+- name: Print local hostname and IPs for debugging
+  shell: |
+    hostname
+    hostname -I
+    ip -4 addr
+    ip -6 addr
+  register: my_debug_info
+
+- name: Show system info
+  debug:
+    var: my_debug_info.stdout_lines
+- name: Check if node can ping other nodes
+  shell: |
+    echo "Pinging {{ item }}..."
+    ping -c 2 {{ item }}
+  args:
+    executable: /bin/bash
+  loop: "{{ groups['jaguar_cluster'] | map('extract', hostvars, ['ansible_host']) | difference([hostvars[inventory_hostname]['ansible_host']]) }}"
+  loop_control:
+    label: "{{ item }}"
+  register: ping_results
+  ignore_errors: true
+
+- name: Fail if any ping failed
+  fail:
+    msg: "At least one ping failed"
+  when: ping_results.results | selectattr('rc', 'ne', 0) | list | length > 0
+
+- name: Show ping outputs
+  debug:
+    var: ping_results.results
+

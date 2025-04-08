@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  rust-logger:
+    build:
+      context: ./rust-logger
+      dockerfile: Dockerfile
+    container_name: rust-logger
+    restart: unless-stopped
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+
+

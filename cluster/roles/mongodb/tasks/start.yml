@@ -1,0 +1,12 @@
+- name: Remove stale MongoDB socket file before starting
+  file:
+    path: /tmp/mongodb-27017.sock
+    state: absent
+  become: yes
+
+- name: Enable and start mongod
+  ansible.builtin.systemd:
+    name: mongod
+    state: started
+    enabled: yes
+

@@ -1,0 +1,9 @@
+- name: Configure mongod.conf
+  ansible.builtin.template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+    owner: mongod
+    group: mongod
+    mode: '0644'
+  notify: Restart mongod
+

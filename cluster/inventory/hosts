@@ -1,0 +1,8 @@
+[jaguar_cluster]
+jag1 ansible_host=10.0.0.59 static_ipv4=10.0.0.59 static_ipv6=2001:db8:1:1::59 ansible_user=jaguar
+jag2 ansible_host=10.0.0.60 static_ipv4=10.0.0.60 static_ipv6=2001:db8:1:1::60 ansible_user=jaguar
+jag3 ansible_host=10.0.0.61 static_ipv4=10.0.0.61 static_ipv6=2001:db8:1:1::61 ansible_user=jaguar
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_private_key_file=~/.ssh/local_cluster

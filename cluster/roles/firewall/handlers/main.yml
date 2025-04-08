@@ -1,0 +1,5 @@
+---
+- name: Reload firewalld
+  command: firewalld-cmd --reload
+  changed_when: false
+  become: true

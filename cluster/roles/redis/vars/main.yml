@@ -1,0 +1,14 @@
+---
+# Redis settings
+redis_cluster_enabled: true
+redis_port: 6379
+cluster_bus_port: 16379
+
+# System settings
+redis_user: redis
+redis_group: redis
+redis_data_dir: /var/lib/redis
+
+# Network settings
+redis_bind: "{{ static_ipv4 }}"
+redis_protected_mode: "no"

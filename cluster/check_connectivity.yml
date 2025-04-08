@@ -1,0 +1,5 @@
+- name: Check connectivity between all nodes
+  hosts: all
+  gather_facts: false
+  roles:
+    - connectivity

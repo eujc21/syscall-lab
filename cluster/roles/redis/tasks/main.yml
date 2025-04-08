@@ -1,0 +1,187 @@
+---
+- name: Install policycoreutils (for semanage)
+  package:
+    name:
+      - policycoreutils
+      - policycoreutils-python-utils  # RHEL/CentOS 8+
+    state: present
+  become: true
+- name: Ensure vm.overcommit_memory = 1 (fix Redis memory issue)
+  sysctl:
+    name: vm.overcommit_memory
+    value: "1"
+    state: present
+    reload: yes
+  become: true
+
+- name: Check if vm.overcommit_memory is set correctly
+  shell: sysctl -n vm.overcommit_memory
+  register: overcommit_check
+  changed_when: false
+
+- name: Fail if vm.overcommit_memory is not 1
+  fail:
+    msg: "vm.overcommit_memory is not set to 1 — Redis may fail during bgsave or replication"
+  when: overcommit_check.stdout != "1"
+
+- name: Install Redis from Rocky Linux repositories
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+    update_cache: yes
+
+- name: Set systemd override to support Redis supervised startup
+  copy:
+    dest: /etc/systemd/system/redis.service.d/override.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/redis-server /etc/redis/redis.conf --supervised systemd
+      Type=notify
+      TimeoutStartSec=90
+      Restart=on-failure
+      RestartSec=3
+  notify: Reload and Restart Redis
+  become: true
+
+- name: Ensure Redis log/run/data dirs exist with correct perms
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  loop:
+    - /var/lib/redis
+    - /var/log/redis
+    - /var/run/redis
+  become: true
+- name: Create Redis directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: 0755
+  loop:
+    - "{{ redis_data_dir }}"
+    - /var/log/redis
+
+- name: Check if SELinux is enabled
+  stat:
+    path: /sys/fs/selinux/enforce
+  register: selinux_status
+  changed_when: false
+
+- name: Set SELinux context for Redis
+  sefcontext:
+    target: "{{ redis_data_dir }}(/.*)?"
+    setype: redis_var_lib_t
+    state: present
+  when: selinux_status.stat.exists
+
+- name: Apply SELinux file context
+  command: restorecon -Rv "{{ redis_data_dir }}"
+  when: selinux_status.stat.exists
+
+- name: Allow Redis port {{ redis_port }} in SELinux
+  seport:
+    ports: "{{ redis_port }}"
+    proto: tcp
+    setype: redis_port_t
+    state: present
+  when: selinux_status.stat.exists
+
+- name: Allow Redis cluster bus port {{ cluster_bus_port }} in SELinux
+  seport:
+    ports: "{{ cluster_bus_port }}"
+    proto: tcp
+    setype: redis_port_t
+    state: present
+  when: selinux_status.stat.exists
+
+- name: Allow Redis network connections
+  seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+  when: selinux_status.stat.exists
+
+- name: Configure firewalld for Redis
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  loop:
+    - "{{ redis_port }}"
+    - "{{ cluster_bus_port }}"
+
+- name: Configure Redis cluster
+  template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: "{{ redis_user }}"
+    group: "{{ redis_group }}"
+    mode: 0644
+  notify: restart redis
+
+- name: Enable and start Redis service
+  systemd:
+    name: redis
+    state: started
+    enabled: yes
+
+- name: Wait for Redis to be available
+  ansible.builtin.wait_for:
+    port: "{{ redis_port }}"
+    host: "{{ static_ipv4 }}"
+    delay: 3
+    timeout: 60
+    state: started
+
+- name: Check Redis cluster nodes
+  shell: redis-cli -p {{ redis_port }} cluster nodes
+  register: redis_cluster_nodes
+  ignore_errors: true
+
+- name: Count lines in CLUSTER NODES output
+  set_fact:
+    cluster_node_count: "{{ redis_cluster_nodes.stdout_lines | length }}"
+
+- name: Clean Redis if node is not clustered
+  when: cluster_node_count | int <= 1
+  block:
+    - name: Delete Redis cluster metadata
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ redis_data_dir }}/nodes.conf"
+        - "{{ redis_data_dir }}/appendonly.aof"
+        - "{{ redis_data_dir }}/dump.rdb"
+      when: cluster_node_count <= 1
+    - name: Flush Redis
+      shell: redis-cli -p {{ redis_port }} FLUSHALL
+      ignore_errors: true
+
+- name: Initialize Redis cluster
+  command: >
+    redis-cli --cluster create
+    {{ groups['jaguar_cluster'] | map('extract', hostvars, 'static_ipv4') | map('regex_replace', '^', '') | map('regex_replace', '$', ':' ~ redis_port) | join(' ') }}
+    --cluster-yes
+  when: 
+    - redis_cluster_enabled 
+    - inventory_hostname == groups['jaguar_cluster'][0]
+
+- name: Verify cluster status
+  command: redis-cli cluster nodes
+  register: cluster_status
+  changed_when: false
+  when: redis_cluster_enabled
+
+- name: Verify Redis is listening on correct port {{ redis_port }}
+  shell: ss -tulnp | grep redis-server
+  register: redis_listening
+  changed_when: false
+  failed_when: redis_listening.stdout is not search(':' ~ redis_port | string)

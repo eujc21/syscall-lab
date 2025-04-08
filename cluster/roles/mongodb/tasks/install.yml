@@ -1,0 +1,26 @@
+- name: Add MongoDB repository
+  ansible.builtin.yum_repository:
+    name: mongodb-org-8.0
+    description: MongoDB Repository
+    baseurl: https://repo.mongodb.org/yum/redhat/9/mongodb-org/8.0/x86_64/
+    gpgcheck: yes
+    enabled: yes
+    gpgkey: https://pgp.mongodb.com/server-8.0.asc
+
+- name: Install MongoDB
+  ansible.builtin.dnf:
+    name: mongodb-org
+    state: present
+    update_cache: yes
+
+- name: Check if shared-openssl3 mongosh is already installed
+  command: rpm -q mongodb-mongosh-shared-openssl3
+  register: mongosh_shared_check
+  ignore_errors: true
+
+- name: Swap mongosh if needed
+  command: >
+    dnf -y swap mongodb-mongosh mongodb-mongosh-shared-openssl3
+  become: yes
+  when: mongosh_shared_check.rc != 0
+

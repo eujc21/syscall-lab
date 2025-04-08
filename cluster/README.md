@@ -1,0 +1,11 @@
+### Make money money.
+- [ ] Setup up static IPv6 for cluster.
+- [ ] Setup lustre Parallel File System
+- [X] Make sure clusters can talk to each other.
+- [ ] Harden servers
+- [ ] [Get rust sails going](https://lakesail.com/)
+- [ ] Create a common role
+- [ ] Create a rust environment role
+- [ ] JPL data test
+- [ ] Connect ESP32/STM32 Modules for Sensor Data
+- [ ] Creat 48U Tower

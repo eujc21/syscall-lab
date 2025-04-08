@@ -1,0 +1,19 @@
+---
+firewall_default_tcp_ports:
+  - "27017" # MongoDB port
+
+
+firewall_default_udp_ports: []
+
+firewall_ports_with_source:
+  - port: "22/tcp" #SSH
+    source: "10.0.0.0/24" # Only allow SSH from this subnet
+
+  # Restricting, mongod access to other jag nodes:
+  - port: "27017/tcp"
+    source: "10.0.0.59/32"
+  - port: "27017/tcp"
+    source: "10.0.0.60/32"
+  - port: "27017/tcp"
+    source: "10.0.0.61/32"
+  

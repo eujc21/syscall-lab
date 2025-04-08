@@ -1,0 +1,21 @@
+---
+- hosts: jaguar_cluster
+  become: yes
+  tasks:
+    - name: Modify NetworkManager connection
+      nmcli:
+        conn_name: "{{ connection_name }}"
+        ifname: "{{ network_interface }}"
+        type: ethernet
+        ip4: "{{ static_ipv4 }}/{{ netmask }}"
+        gw4: "{{ gateway }}"
+        dns4: "{{ dns_servers }}"
+        ip6: "{{ static_ipv6 }}/{{ ipv6_prefix }}"
+        gw6: "{{ gateway6 }}"
+        dns6: "{{ dns_servers6 }}"
+        state: present
+        autoconnect: yes
+    - name: Activate NetworkManager connection
+      command: nmcli connection up "{{ connection_name }}"
+      register: result
+      changed_when: "'Connection successfully activated' in result.stdout"

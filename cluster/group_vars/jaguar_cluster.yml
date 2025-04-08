@@ -1,0 +1,9 @@
+network_interface: "enp6s18"
+connection_name: "enp6s18"
+netmask: "24"
+gateway: "10.0.0.1"
+dns_servers: "8.8.8.8,8.8.4.4"
+ipv6_prefix:  "64"
+gateway6: "fe80::1"
+dns_servers6: "2001:4860:4860::8888,2001:4860:4860::8844"
+

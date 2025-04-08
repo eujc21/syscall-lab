@@ -1,0 +1,7 @@
+- name: MongoDB Replica
+  hosts: jaguar_cluster
+  become: yes
+  roles:
+    - firewall
+    - mongodb
+
