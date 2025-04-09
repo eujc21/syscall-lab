@@ -1,0 +1,7 @@
+{
+  "venvPath": "${workspaceFolder}",
+  "venv": ".venv",
+  "extraPaths": ["${workspaceFolder}/src"]
+}
+
+
