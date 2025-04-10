@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = "*"
 pymongo = "*"
 redis = "*"
 requests = "*"
 dotenv = "*"
+django = "*"
 
 [dev-packages]
 
