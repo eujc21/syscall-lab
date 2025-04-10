@@ -8,8 +8,8 @@ djangorestframework = "*"
 markdown = "*"
 django-filter = "*"
 pymongo = "*"
-django = "*"
 redis = "*"
+django = "*"
 
 [dev-packages]
 
