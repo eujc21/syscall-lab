@@ -1,4 +1,3 @@
-![Architecture](./architecture.png)
 ```mermaid
 graph TD
 subgraph Endpoint Nodes
