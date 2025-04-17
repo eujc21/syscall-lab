@@ -19,7 +19,7 @@
 - [ ] Postgres Role
 #### Cache Roles
 - [X] Redis Role
-- [ ] Kafka Role
+- [X] Kafka Role
 #### Language Roles
 - [ ] Rust Role
 - [ ] C++ Role
