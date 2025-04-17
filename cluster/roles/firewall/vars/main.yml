@@ -1,6 +1,8 @@
 ---
 firewall_default_tcp_ports:
   - "27017" # MongoDB port
+  - "9092" # Kafka broker listener
+  - "9093" # Kafka controller listener 
 
 
 firewall_default_udp_ports: []
@@ -17,3 +19,9 @@ firewall_ports_with_source:
   - port: "27017/tcp"
     source: "10.0.0.61/32"
   
+  # Allowing Kafka access to other jag nodes:
+  - port: "9092/tcp"
+    source: "10.0.0.0/24"
+  - port: "9093/tcp"
+    source: "10.0.0.0/24"
+

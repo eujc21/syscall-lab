@@ -1,0 +1,9 @@
+tickTime=2000
+dataDir=/var/lib/zookeeper
+clientPort={{ kafka_zookeeper_port }}
+initLimit=10
+syncLimit=5
+
+{% for host in groups['jaguar_cluster'] %}
+server.{{ loop.index }}={{ hostvars[host]['static_ipv4'] }}:2888:3888
+{% endfor %}

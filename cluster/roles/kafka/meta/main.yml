@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  role_name: kafka
+  author: Your Name
+  description: Ansible role to install and configure Apache Kafka
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Rocky
+      versions:
+        - all
+  galaxy_tags:
+    - kafka
+    - messaging
+    - distributed
+    - bigdata
+
+dependencies: []

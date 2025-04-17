@@ -1,0 +1,30 @@
+---
+- name: Ensure Kafka configuration files are only readable by kafka user
+  become: true
+  file:
+    path: "{{ kafka_config_dir }}"
+    recurse: yes
+    mode: '0644'
+  tags: kafka-hardening
+
+- name: Configure firewall for Kafka port (9092 by default)
+  become: true
+  firewalld:
+    port: "{{ kafka_broker_port }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+  when: firewall_enabled | bool
+  tags: kafka-hardening
+
+- name: "Consider further hardening steps (ACLs, TLS/SSL, JMX Authentication, etc.)"
+  debug:
+    msg: "For production environments, implement more robust hardening: ACLs, TLS/SSL encryption for inter-broker and client communication, JMX authentication, secure Zookeeper access, and regular security audits."
+  tags: kafka-hardening
+
+- name: Fix permissions for Kafka config files
+  become: true
+  ansible.builtin.find:
+    paths: "{{ kafka_config_dir }}"
+    file_type: file
+  register: kafka_config_files

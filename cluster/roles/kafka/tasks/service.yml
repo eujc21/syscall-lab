@@ -1,0 +1,17 @@
+---
+- name: Install systemd service file
+  template:
+    src: "{{ kafka_service_template }}"
+    dest: "/etc/systemd/system/{{ kafka_service_name }}.service"
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart kafka
+
+- name: Enable and start Kafka service
+  service:
+    name: "{{ kafka_service_name }}"
+    enabled: true
+    state: started

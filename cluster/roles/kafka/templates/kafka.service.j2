@@ -1,0 +1,17 @@
+[Unit]
+Description=Apache Kafka Server (KRaft)
+Documentation=https://kafka.apache.org/documentation/
+After=network.target
+
+[Service]
+User={{ kafka_user }}
+Group={{ kafka_group }}
+Type=simple
+Environment="KAFKA_HEAP_OPTS=-Xmx1G -Xms1G"
+ExecStart={{ kafka_dir }}/bin/kafka-server-start.sh {{ kafka_config_dir }}/server.properties
+ExecStop={{ kafka_dir }}/bin/kafka-server-stop.sh
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

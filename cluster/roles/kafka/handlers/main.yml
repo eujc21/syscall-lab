@@ -1,0 +1,9 @@
+---
+- name: reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: restart kafka
+  service:
+    name: "{{ kafka_service_name }}"
+    state: restarted

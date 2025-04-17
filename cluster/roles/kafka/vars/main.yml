@@ -1,0 +1,50 @@
+---
+# Kafka Configuration Variables
+# Kafka version and Scala version
+kafka_version: 4.0.0
+kafka_scala_version: 2.13
+kafka_download_url: "https://dlcdn.apache.org/kafka/{{ kafka_version }}/kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+kafka_checksum: "sha512:00722ab0a6b954e0006994b8d589dcd8f26e1827c47f70b6e820fb45aa35945c19163b0f188caf0caf976c11f7ab005fd368c54e5851e899d2de687a804a5eb9"
+
+# Installation Paths
+kafka_dir: "/opt/kafka/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+kafka_bin_dir: "{{ kafka_dir }}/bin"
+kafka_config_dir: "{{ kafka_dir }}/config/kraft"
+
+# Users and Groups
+kafka_user: kafka
+kafka_group: kafka
+
+# Kafka directories
+kafka_data_dir: /var/lib/kafka-data
+kafka_log_dir: /var/log/kafka
+
+# Kraft Settings
+kraft_node_id: ""     # Should be set in host_vars for each node
+# Roles assignment - since all your nodes are controllers+brokers
+kraft_roles: "controller,broker"
+# Listeners configuration
+kraft_listeners: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+# Quorum voters configuration (using IPs since no DNS)
+kraft_controller_quorum_voters: "1@10.0.0.59:9093,2@10.0.0.60:9093,3@10.0.0.61:9093"
+# Advertised listeners (using IPs)
+kraft_advertised_listeners: "PLAINTEXT://{{ ansible_host }}:9092"
+# Kraft kafka log directory
+kraft_log_dir: "{{ kafka_data_dir }}/kraft-logs"
+
+# Java Settings
+java_packages:
+  - java-17-openjdk
+  - java-17-openjdk-devel
+  - java-17-openjdk-headless
+
+
+  # Cache settings
+kafka_cache_dir: "/tmp/ansible_kafka_cache"
+kafka_cache_enabled: true  # Set to false to force fresh download
+kafka_cache_file: "kafka_{{ kafka_scala_version }}-{{ kafka_version }}.tgz"
+
+
+# Systemd Service
+kafka_service_name: "kafka"
+kafka_service_template: "kafka.service.j2"

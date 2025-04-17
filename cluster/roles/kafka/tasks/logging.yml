@@ -1,0 +1,12 @@
+---
+- name: Deploy default log4j2.properties for Kafka
+  become: true
+  copy:
+    src: log4j2.properties
+    dest: "{{ kafka_config_dir }}/log4j2.properties"
+    owner: kafka
+    group: kafka
+    mode: '0644'
+  tags: kafka-logging
+  notify: restart_kafka
+

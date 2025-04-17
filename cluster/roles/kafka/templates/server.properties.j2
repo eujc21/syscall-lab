@@ -1,0 +1,26 @@
+# KRaft Configuration
+process.roles={{ kraft_roles }}
+node.id={{ node_id }}
+
+# Listener Configuration
+listeners={{ kraft_listeners }}
+advertised.listeners={{ kraft_advertised_listeners }}
+inter.broker.listener.name=PLAINTEXT
+controller.listener.names=CONTROLLER
+controller.quorum.voters={{ kraft_controller_quorum_voters }}
+
+# Log Configuration
+log.dirs={{ kraft_log_dir }}
+num.partitions=1
+num.recovery.threads.per.data.dir=1
+
+# Default replication factors
+default.replication.factor=3
+offsets.topic.replication.factor=3
+transaction.state.log.replication.factor=3
+transaction.state.log.min.isr=2
+
+# Other defaults
+log.retention.hours=168
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000

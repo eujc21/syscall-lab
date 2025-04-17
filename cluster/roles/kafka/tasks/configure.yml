@@ -1,0 +1,78 @@
+---
+- name: Ensure configuration directory exists
+  file:
+    path: "{{ kafka_config_dir }}"
+    state: directory
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: '0750'
+
+- name: Create and configure Kafka log directory
+  file:
+    path: "{{ kraft_log_dir }}"
+    state: directory
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: '0750'
+
+- name: Generate cluster ID if not specified
+  command: "{{ kafka_bin_dir }}/kafka-storage.sh random-uuid"
+  register: kafka_cluster_id
+  changed_when: false
+  when: kraft_cluster_id == ""
+
+- name: Set fact for cluster ID
+  set_fact:
+    kraft_cluster_id: "{{ kafka_cluster_id.stdout }}"
+  when: kraft_cluster_id == ""
+
+- name: Debug node ID variables
+  debug:
+    msg: |
+      kraft_node_id: ""
+      inventory_hostname: {{ inventory_hostname }}
+      hostvars: {{ hostvars[inventory_hostname]['node_id'] }}
+
+- name: Set node_id fact
+  set_fact:
+    node_id: "{{ hostvars[inventory_hostname]['kraft_node_id'] | default(hostvars[inventory_hostname]['node_id']) }}"
+  
+- name: Validate node_id
+  fail:
+    msg: "node_id must be set (got '{{ node_id }}' for {{ inventory_hostname }})"
+  when: node_id is not defined or node_id | string | length == 0
+
+- name: Create server.properties template
+  template:
+    src: server.properties.j2
+    dest: "{{ kafka_config_dir }}/server.properties"
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: '0640'
+  vars:
+    node_id: "{{ node_id }}"
+
+- name: Verify server.properties content
+  command: "cat {{ kafka_config_dir }}/server.properties"
+  register: server_properties
+  changed_when: false
+
+- name: Display server.properties
+  debug:
+    var: server_properties.stdout
+
+- name: Format storage directories (controller nodes)
+  command: >
+    {{ kafka_bin_dir }}/kafka-storage.sh format
+    -t {{ kraft_cluster_id }}
+    -c {{ kafka_config_dir }}/server.properties
+  become: true
+  become_user: "{{ kafka_user }}"
+  when: "'controller' in kraft_roles"
+
+- name: Validate node.id is set
+  fail:
+    msg: "kraft_node_id must be set to a number (1, 2, 3, etc.)"
+  when: 
+    - kraft_node_id is not defined
+    - not kraft_node_id | int > 0

@@ -1,0 +1,15 @@
+--- 
+- name: Install required packages
+  dnf:
+    name: "{{ java_packages + ['wget', 'tar','gzip'] }}"
+    state: present
+
+- name: Create Kafka User and Group
+  user:
+    name: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    system: yes
+    shell: /sbin/nologin
+    home: "{{ kafka_dir }}"
+
+

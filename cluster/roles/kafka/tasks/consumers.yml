@@ -1,0 +1,5 @@
+---
+- name: "Placeholder for Consumer specific broker configurations (if needed)"
+  debug:
+    msg: "Consumer configurations are primarily application-level. Broker-level configurations related to consumers might include quotas or specific ACLs if needed."
+  tags: kafka-consumers

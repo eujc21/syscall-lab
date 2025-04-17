@@ -1,0 +1,9 @@
+---
+- name: Install and configure Kafka with KRaft
+  hosts: jaguar_cluster
+  become: true
+  vars:
+    kraft_roles: "{{ 'controller,broker' if (inventory_hostname == 'jag1' or inventory_hostname == 'jag2' or inventory_hostname == 'jag3') else 'broker' }}"
+  roles:
+    - firewall
+    - kafka

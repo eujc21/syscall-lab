@@ -46,4 +46,4 @@ class RedisClientTestCase(TestCase):
         # Test that the value is set
         value = redis_client.redis.get(hash_key)
         print(value)
-        self.rtEqual(value, hash_value)
+        self.assertEqual(value, hash_value)

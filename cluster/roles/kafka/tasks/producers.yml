@@ -1,0 +1,5 @@
+---
+- name: "Placeholder for Producer specific broker configurations (if needed)"
+  debug:
+    msg: "Producer configurations can be managed at the broker level (e.g., resource limits, quotas) if required. Application-level producer configurations are typically handled in the producer applications themselves."
+  tags: kafka-producers

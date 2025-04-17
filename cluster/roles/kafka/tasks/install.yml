@@ -1,0 +1,76 @@
+---
+- name: Clean up previous installations
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/opt/kafka/config"
+    - "/opt/kafka/current"
+    - "/opt/kafka/kafka_{{ kafka_scala_version }}-{{ kafka_version }}"
+  ignore_errors: true
+
+- name: Ensure clean data and log directories
+  file:
+    path: "{{ item }}"
+    state: absent
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: '0755'
+  loop:
+    - "{{ kafka_data_dir }}"
+    - "{{ kafka_log_dir }}"
+
+- name: Create Kafka directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+    mode: '0755'
+  loop:
+    - "{{ kafka_dir }}"
+    - "{{ kafka_data_dir }}"
+    - "{{ kafka_log_dir }}"
+
+- name: Create cache directory
+  file:
+    path: "{{ kafka_cache_dir }}"
+    state: directory
+    mode: '0755'
+  when: kafka_cache_enabled
+
+- name: Check if cached download exists
+  stat:
+    path: "{{ kafka_cache_dir }}/{{ kafka_cache_file }}"
+  register: kafka_cached_file
+  when: kafka_cache_enabled
+
+- name: Download Kafka (skip if cached)
+  get_url:
+    url: "{{ kafka_download_url }}"
+    dest: "{{ kafka_cache_dir }}/{{ kafka_cache_file }}"
+    checksum: "{{ kafka_checksum }}"
+    timeout: 60
+  when: not kafka_cache_enabled or not kafka_cached_file.stat.exists
+
+- name: Copy from cache to temp location
+  copy:
+    src: "{{ kafka_cache_dir }}/{{ kafka_cache_file }}"
+    dest: "/tmp/{{ kafka_cache_file }}"
+    remote_src: yes
+  when: kafka_cache_enabled and kafka_cached_file.stat.exists
+
+- name: Extract Kafka
+  unarchive:
+    src: "/tmp/{{ kafka_cache_file }}"
+    dest: "{{ kafka_dir }}"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    owner: "{{ kafka_user }}"
+    group: "{{ kafka_group }}"
+
+- name: Clean up temporary file
+  file:
+    path: "/tmp/{{ kafka_cache_file }}"
+    state: absent
+  when: not ansible_check_mode
