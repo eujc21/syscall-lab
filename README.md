@@ -26,3 +26,15 @@ subgraph Django API
     E1 --> F1[Frontend Dashboard]
 end
 ```
+
+```mermaid
+graph TD
+    A[System Architecture] --> B{Cluster};
+    A --> C{Lab Environment};
+    C --> D[Client: TreePixelDB];
+    C --> E[Microservices];
+
+    click B "https://github.com/eujc21/syscall-lab/blob/main/cluster/README.md" "Go to Cluster Documentation"
+    click D "https://github.com/eujc21/syscall-lab/blob/main/lab-env/client/TreePixelDB/README.md" "Go to Client Documentation"
+    click E "https://github.com/eujc21/syscall-lab/blob/main/lab-env/micro_services/README.md" "Go to Microservices Documentation"
+```
