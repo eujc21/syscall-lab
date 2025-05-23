@@ -1,0 +1,15 @@
+[kafka_cluster_nodes]
+kafka_node1 ansible_host=192.168.1.101 ansible_user=your_ssh_user node_id=1 kafka_node_role=controller_broker
+kafka_node2 ansible_host=192.168.1.102 ansible_user=your_ssh_user node_id=2 kafka_node_role=controller_broker
+kafka_node3 ansible_host=192.168.1.103 ansible_user=your_ssh_user node_id=3 kafka_node_role=controller_broker
+#kafka_node4 ansible_host=192.168.1.104 ansible_user=your_ssh_user node_id=4 kafka_node_role=broker
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_ssh_private_key_file=~/.ssh/your_kafka_cluster_key
+
+[kafka_cluster_nodes:vars]
+kraft_controller_quorum_voters="1@192.168.1.101:9093,2@192.168.1.102:9093,3@192.168.1.103:9093"
+kraft_advertised_listeners="PLAINTEXT://{{ ansible_host }}:9092"
+kraft_listeners="PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+kraft_cluster_id="please_generate_and_paste_a_uuid_here"
