@@ -34,7 +34,7 @@ graph TD
     C --> D[Client: TreePixelDB];
     C --> E[Microservices];
 
-    click B "./cluster/README.md" "Go to Cluster Documentation"
-    click D "./lab-env/client/TreePixelDB/README.md" "Go to Client Documentation"
-    click E "./lab-env/micro_services/README.md" "Go to Microservices Documentation"
+    click B "https://github.com/eujc21/syscall-lab/blob/main/cluster/README.md" "Go to Cluster Documentation"
+    click D "https://github.com/eujc21/syscall-lab/blob/main/lab-env/client/TreePixelDB/README.md" "Go to Client Documentation"
+    click E "https://github.com/eujc21/syscall-lab/blob/main/lab-env/micro_services/README.md" "Go to Microservices Documentation"
 ```
